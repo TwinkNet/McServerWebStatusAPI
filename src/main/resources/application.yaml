@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: StatusAPI
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    certificate: fullchain.pem
+    certificate-private-key: privkey.pem
