@@ -66,12 +66,13 @@ class StatusApiApplicationTests {
 					signedChallenge = new SignedChallenge(1L, res.challenge(), sig);
 					String json = mapper.writeValueAsString(signedChallenge);
 					// created SignedChallenge and mapped to json
+					System.out.println(json);
 					mvc.perform(post("/challenge/1")
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(json))
 							.andExpect(pResult -> {
 								String pResponse = pResult.getResponse().getContentAsString();
-								Result pRes = mapper.readValue(response, Result.class);
+								Result pRes = mapper.readValue(pResponse, Result.class);
 								assertThat(pRes.getState() == State.OK);
 								System.out.println("postChallengeController -- OK, AUTHENTICATED");
 							});
@@ -86,6 +87,7 @@ class StatusApiApplicationTests {
 		ServerStat stat = new ServerStat(4783, 20, 10034, "MB");
 		PostUpdateRequest request = new PostUpdateRequest(signedChallenge, stat);
 		String json = mapper.writeValueAsString(request);
+		System.out.println(json);
 		mvc.perform(
 				post("/update")
 						.contentType(MediaType.APPLICATION_JSON)
@@ -93,6 +95,7 @@ class StatusApiApplicationTests {
 		).andExpect(
 				result -> {
 					String response = result.getResponse().getContentAsString();
+					System.out.println(response);
 					Result res = mapper.readValue(response, Result.class);
 					assertThat(res.getState() == State.OK);
 					assertThat(StatusApiApplication.globalServerStat.equals(stat));
@@ -105,6 +108,7 @@ class StatusApiApplicationTests {
 	void patchUpdateStatsControllerUniquePlayers() throws Exception {
 		final int newUniquePlayers = 4873;
 		String json = mapper.writeValueAsString(signedChallenge);
+		System.out.println(json);
 		mvc.perform(
 				patch("/update?uniquePlayers=" + newUniquePlayers)
 						.contentType(MediaType.APPLICATION_JSON)
@@ -112,6 +116,7 @@ class StatusApiApplicationTests {
 		).andExpect(
 				result -> {
 					String response = result.getResponse().getContentAsString();
+					System.out.println(response);
 					Result res = mapper.readValue(response, Result.class);
 					assertThat(res.getState() == State.OK);
 					boolean updated = StatusApiApplication.globalServerStat.uniquePlayers() == newUniquePlayers;
@@ -125,6 +130,7 @@ class StatusApiApplicationTests {
 	void patchUpdateStatsControllerCurrentPlayers() throws Exception {
 		final int newCurrentPlayers = 102;
 		String json = mapper.writeValueAsString(signedChallenge);
+		System.out.println(json);
 		mvc.perform(
 				patch("/update?currentPlayers=" + newCurrentPlayers)
 						.contentType(MediaType.APPLICATION_JSON)
@@ -132,6 +138,7 @@ class StatusApiApplicationTests {
 		).andExpect(
 				result -> {
 					String response = result.getResponse().getContentAsString();
+					System.out.println(response);
 					Result res = mapper.readValue(response, Result.class);
 					assertThat(res.getState() == State.OK);
 					boolean updated = StatusApiApplication.globalServerStat.currentPlayers() == newCurrentPlayers;
@@ -145,6 +152,7 @@ class StatusApiApplicationTests {
 	void patchUpdateStatsControllerWorldSize() throws Exception {
 		final int newWorldSize = 4893;
 		String json = mapper.writeValueAsString(signedChallenge);
+		System.out.println(json);
 		mvc.perform(
 				patch("/update?worldSize=" + newWorldSize)
 						.contentType(MediaType.APPLICATION_JSON)
@@ -165,6 +173,7 @@ class StatusApiApplicationTests {
 	void patchUpdateStatsControllerWorldSizeUnits() throws Exception {
 		final String newWorldSizeUnits = "TB";
 		String json = mapper.writeValueAsString(signedChallenge);
+		System.out.println(json);
 		mvc.perform(
 				patch("/update?worldSizeUnits=" + newWorldSizeUnits)
 						.contentType(MediaType.APPLICATION_JSON)
