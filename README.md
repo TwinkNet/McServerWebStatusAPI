@@ -3,7 +3,6 @@
 A simple RESTful web server (using SpringBoot) for tracking Minecraft server stats, complete with unit testing!
 
 ### What's so special?
-
 I didn't want to open another port on the Minecraft server, instead, 
 I wanted to use a cheap VPS that I have to run this web server, and then
 have the Minecraft server send HTTP POST requests with the statistics to that VPS periodically.
@@ -15,6 +14,10 @@ the relevant endpoints are protected by public and private key authentication,
 sort of like logging into an SSH server. The server generates a public and private keypair on first run,
 and the public key stays on the server, you will keep the private key on the Minecraft server and use that
 to sign challenges sent by the web server, and use that to make authenticated requests.
+
+### See it in action
+We're running it live on [https://2b2tmuseum.org/](https://2b2tmuseum.org/), watch it populate in the header! (Ensure JS is enabled.)
+![Image](readme_assets/header.png)
 
 ### Disclaimer
 This software is written the old-fashioned way with no AI agents.
