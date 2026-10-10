@@ -1,6 +1,6 @@
 ## McServerWebStatusAPI
 
-A simple RESTful web server for tracking Minecraft server stats, complete with unit testing!
+A simple RESTful web server (using SpringBoot) for tracking Minecraft server stats, complete with unit testing!
 
 ### What's so special?
 
