@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.j2b2tmuseum.org"
-version = "0.0.1-SNAPSHOT"
+version = "1.0-Pre-1-SNAPSHOT"
 
 java {
 	toolchain {
