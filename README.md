@@ -55,8 +55,7 @@ it can be used on any website, even if the domain is different.
 {
   "uniquePlayers": 1381, // how many players have joined the server at least once
   "currentPlayers": 0, // players currently online
-  "worldSize": 1306, // how big the world is
-  "worldSizeUnits": "GB" // what unit is worldSize reported in
+  "worldSizeBytes": 1306 // how big the world is in bytes
 }
 ```
 ---
@@ -81,8 +80,7 @@ If only updating one or more values, you can use the `PATCH` endpoint explained 
   "stats": {
     "uniquePlayers": 4783,
     "currentPlayers": 20,
-    "worldSize": 10034,
-    "worldSizeUnits": "MB"
+    "worldSizeBytes": 10034
   }
 }
 ```
@@ -104,7 +102,7 @@ If only updating one or more values, you can use the `PATCH` endpoint explained 
 ## PATCH /update
 ```
 PATCH /update?uniquePlayers=47283
-PATCH /update?uniquePlayers=47283&worldSize=10034
+PATCH /update?uniquePlayers=47283&worldSizeBytes=10034
                                  ^ You can add as many additional parameters as you'd like in any order using the '&' to split them
 ```
 ### Content Body:

@@ -4,6 +4,7 @@ import org.j2b2tmuseum.org.StatusAPI.ChallengeComponent;
 import org.j2b2tmuseum.org.StatusAPI.StatusApiApplication;
 import org.j2b2tmuseum.org.StatusAPI.auth.SignedChallenge;
 import org.j2b2tmuseum.org.StatusAPI.obj.Result;
+import org.j2b2tmuseum.org.StatusAPI.obj.ServerStat;
 import org.j2b2tmuseum.org.StatusAPI.obj.State;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +27,12 @@ public class UpdateStatsController {
         if (!pass) {
             return new Result(State.ERROR, "Not authenticated");
         }
+        Result validation = postUpdateRequest.stats().isValid();
+        if (validation.getState() == State.ERROR) {
+            return validation;
+        }
         StatusApiApplication.globalServerStat = postUpdateRequest.stats();
-        return new Result(State.OK);
+        return validation;
     }
 
     @PatchMapping("/update")
@@ -35,8 +40,7 @@ public class UpdateStatsController {
             (@RequestBody SignedChallenge auth,
              @RequestParam(required = false) Integer uniquePlayers,
              @RequestParam(required = false) Integer currentPlayers,
-             @RequestParam(required = false) Integer worldSize,
-             @RequestParam(required = false) String worldSizeUnits)
+             @RequestParam(required = false) Integer worldSizeBytes)
     {
         if (!StatusApiApplication.isKeyPairReady()) {
             return new Result(State.ERROR, "Can't authenticate");
@@ -46,29 +50,30 @@ public class UpdateStatsController {
             return new Result(State.ERROR, "Not authenticated");
         }
         AtomicInteger i = new AtomicInteger(0);
+        ServerStat proposedStat = StatusApiApplication.globalServerStat;
         if (uniquePlayers != null) {
             i.getAndIncrement();
-            StatusApiApplication.globalServerStat =
+            proposedStat =
                     StatusApiApplication.globalServerStat.withUniquePlayers(uniquePlayers);
         }
         if (currentPlayers != null) {
             i.getAndIncrement();
-            StatusApiApplication.globalServerStat =
+            proposedStat =
                     StatusApiApplication.globalServerStat.withCurrentPlayers(currentPlayers);
         }
-        if (worldSize != null) {
+        if (worldSizeBytes != null) {
             i.getAndIncrement();
-            StatusApiApplication.globalServerStat =
-                    StatusApiApplication.globalServerStat.withWorldSize(worldSize);
-        }
-        if (worldSizeUnits != null) {
-            i.getAndIncrement();
-            StatusApiApplication.globalServerStat =
-                    StatusApiApplication.globalServerStat.withWorldSizeUnits(worldSizeUnits);
+            proposedStat =
+                    StatusApiApplication.globalServerStat.withWorldSizeBytes(worldSizeBytes);
         }
         if (i.get() == 0) {
             return new Result(State.ERROR, "No parameters were passed");
         }
-        return new Result(State.OK);
+        Result validation = proposedStat.isValid();
+        if (validation.getState() == State.ERROR) {
+            return validation;
+        }
+        StatusApiApplication.globalServerStat = proposedStat;
+        return validation;
     }
 }

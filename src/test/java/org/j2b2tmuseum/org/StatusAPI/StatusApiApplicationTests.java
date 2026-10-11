@@ -39,7 +39,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @AutoConfigureMockMvc
 class StatusApiApplicationTests {
 
-	private static final String SERVER_STAT = "{\"uniquePlayers\":4783,\"currentPlayers\":20,\"worldSize\":10034,\"worldSizeUnits\":\"MB\"}";
+	@Deprecated private static final String SERVER_STAT = "{\"uniquePlayers\":4783,\"currentPlayers\":20,\"worldSizeBytes\":10034}";
+	private static final ServerStat OBJ_SERVER_STAT = new ServerStat(4783, 20, 10034);
 
 	@Autowired
 	MockMvc mvc;
@@ -53,8 +54,6 @@ class StatusApiApplicationTests {
 	void getChallengeController() throws Exception {
 		mvc.perform(
 				get("/challenge/1")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(SERVER_STAT)
 		).andExpect(
 				result -> {
 					String response = result.getResponse().getContentAsString();
@@ -73,10 +72,10 @@ class StatusApiApplicationTests {
 							.andExpect(pResult -> {
 								String pResponse = pResult.getResponse().getContentAsString();
 								Result pRes = mapper.readValue(pResponse, Result.class);
-								assertThat(pRes.getState() == State.OK);
+								assertTrue(pRes.getState() == State.OK);
 								System.out.println("postChallengeController -- OK, AUTHENTICATED");
 							});
-					assertThat(res.challenge().length == 32);
+					assertTrue(res.challenge().length == 32);
 					System.out.println("getChallengeController -- OK");
 				}
 		);
@@ -84,7 +83,7 @@ class StatusApiApplicationTests {
 
 	@Test
 	void postUpdateStatsController() throws Exception {
-		ServerStat stat = new ServerStat(4783, 20, 10034, "MB");
+		ServerStat stat = OBJ_SERVER_STAT;
 		PostUpdateRequest request = new PostUpdateRequest(signedChallenge, stat);
 		String json = mapper.writeValueAsString(request);
 		System.out.println(json);
@@ -97,8 +96,8 @@ class StatusApiApplicationTests {
 					String response = result.getResponse().getContentAsString();
 					System.out.println(response);
 					Result res = mapper.readValue(response, Result.class);
-					assertThat(res.getState() == State.OK);
-					assertThat(StatusApiApplication.globalServerStat.equals(stat));
+					assertTrue(res.getState() == State.OK);
+					assertTrue(StatusApiApplication.globalServerStat.equals(stat));
 					System.out.println("postUpdateStatsController -- OK");
 				}
 		);
@@ -106,7 +105,7 @@ class StatusApiApplicationTests {
 
 	@Test
 	void patchUpdateStatsControllerUniquePlayers() throws Exception {
-		final int newUniquePlayers = 4873;
+		final int newUniquePlayers = 4883;
 		String json = mapper.writeValueAsString(signedChallenge);
 		System.out.println(json);
 		mvc.perform(
@@ -118,17 +117,42 @@ class StatusApiApplicationTests {
 					String response = result.getResponse().getContentAsString();
 					System.out.println(response);
 					Result res = mapper.readValue(response, Result.class);
-					assertThat(res.getState() == State.OK);
+					assertTrue(res.getState() == State.OK);
 					boolean updated = StatusApiApplication.globalServerStat.uniquePlayers() == newUniquePlayers;
-					assertThat(updated);
+					assertTrue(updated);
 					System.out.println("patchUpdateStatsControllerUniquePlayers -- OK");
 
 				}
 		);
 	}
+
+	@Test
+	void patchUpdateStatsControllerUniquePlayersValidation() throws Exception {
+		final int newUniquePlayers = -4883;
+		final int currentUniquePlayers = StatusApiApplication.globalServerStat.uniquePlayers();
+		String json = mapper.writeValueAsString(signedChallenge);
+		System.out.println(json);
+		mvc.perform(
+				patch("/update?uniquePlayers=" + newUniquePlayers)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(json)
+		).andExpect(
+				result -> {
+					String response = result.getResponse().getContentAsString();
+					System.out.println(response);
+					Result res = mapper.readValue(response, Result.class);
+					assertTrue(res.getState() == State.ERROR);
+					boolean didntUpdate = StatusApiApplication.globalServerStat.uniquePlayers() == currentUniquePlayers;
+					assertTrue(didntUpdate);
+					System.out.println("patchUpdateStatsControllerUniquePlayersValidation -- OK");
+
+				}
+		);
+	}
+
 	@Test
 	void patchUpdateStatsControllerCurrentPlayers() throws Exception {
-		final int newCurrentPlayers = 102;
+		final int newCurrentPlayers = 24;
 		String json = mapper.writeValueAsString(signedChallenge);
 		System.out.println(json);
 		mvc.perform(
@@ -140,55 +164,38 @@ class StatusApiApplicationTests {
 					String response = result.getResponse().getContentAsString();
 					System.out.println(response);
 					Result res = mapper.readValue(response, Result.class);
-					assertThat(res.getState() == State.OK);
+					assertTrue(res.getState() == State.OK);
 					boolean updated = StatusApiApplication.globalServerStat.currentPlayers() == newCurrentPlayers;
-					assertThat(updated);
+					assertTrue(updated);
 					System.out.println("patchUpdateStatsControllerCurrentPlayers -- OK");
 
 				}
 		);
 	}
 	@Test
-	void patchUpdateStatsControllerWorldSize() throws Exception {
-		final int newWorldSize = 4893;
+	void patchUpdateStatsControllerWorldSizeBytes() throws Exception {
+		final long newWorldSizeBytes = 1003463;
 		String json = mapper.writeValueAsString(signedChallenge);
 		System.out.println(json);
 		mvc.perform(
-				patch("/update?worldSize=" + newWorldSize)
+				patch("/update?worldSizeBytes=" + newWorldSizeBytes)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(json)
 		).andExpect(
 				result -> {
 					String response = result.getResponse().getContentAsString();
 					Result res = mapper.readValue(response, Result.class);
-					assertThat(res.getState() == State.OK);
-					boolean updated = StatusApiApplication.globalServerStat.worldSize() == newWorldSize;
-					assertThat(updated);
-					System.out.println("patchUpdateStatsControllerWorldSize -- OK");
+					assertTrue(res.getState() == State.OK);
+					boolean updated = StatusApiApplication.globalServerStat.worldSizeBytes() == newWorldSizeBytes;
+					assertTrue(updated);
+					System.out.println("patchUpdateStatsControllerWorldSizeBytes -- OK");
 
 				}
 		);
 	}
-	@Test
-	void patchUpdateStatsControllerWorldSizeUnits() throws Exception {
-		final String newWorldSizeUnits = "TB";
-		String json = mapper.writeValueAsString(signedChallenge);
-		System.out.println(json);
-		mvc.perform(
-				patch("/update?worldSizeUnits=" + newWorldSizeUnits)
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(json)
-		).andExpect(
-				result -> {
-					String response = result.getResponse().getContentAsString();
-					Result res = mapper.readValue(response, Result.class);
-					assertThat(res.getState() == State.OK);
-					boolean updated = StatusApiApplication.globalServerStat.worldSizeUnits().equals(newWorldSizeUnits);
-					assertThat(updated);
-					System.out.println("patchUpdateStatsControllerWorldSizeUnits -- OK");
 
-				}
-		);
+	private void assertTrue(boolean flag) {
+		assertThat(flag).isTrue();
 	}
 
 }

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class StatusApiApplication {
 
     public static boolean keyPairReadiness = false;
-    public static ServerStat globalServerStat = new ServerStat(0, 0, 0, "KB");
+    public static ServerStat globalServerStat = new ServerStat(0, 0, 0);
 
 
     public static void main(String[] args) {
