@@ -41,6 +41,9 @@ class StatusApiApplicationTests {
 
 	@Deprecated private static final String SERVER_STAT = "{\"uniquePlayers\":4783,\"currentPlayers\":20,\"worldSizeBytes\":10034}";
 	private static final ServerStat OBJ_SERVER_STAT = new ServerStat(4783, 20, 10034);
+	private static final ServerStat BAD_OBJ_SERVER_STAT = new ServerStat(-4783, -20, -10034);
+	@SuppressWarnings("NumericOverflow") private static final ServerStat OVERFLOW_OBJ_SERVER_STAT =
+			new ServerStat(Integer.MAX_VALUE + 67, (int)Long.MAX_VALUE, 10034);
 
 	@Autowired
 	MockMvc mvc;
@@ -99,6 +102,50 @@ class StatusApiApplicationTests {
 					assertTrue(res.getState() == State.OK);
 					assertTrue(StatusApiApplication.globalServerStat.equals(stat));
 					System.out.println("postUpdateStatsController -- OK");
+				}
+		);
+	}
+
+	@Test
+	void postUpdateStatsControllerValidation() throws Exception {
+		ServerStat stat = BAD_OBJ_SERVER_STAT;
+		PostUpdateRequest request = new PostUpdateRequest(signedChallenge, stat);
+		String json = mapper.writeValueAsString(request);
+		System.out.println(json);
+		mvc.perform(
+				post("/update")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(json)
+		).andExpect(
+				result -> {
+					String response = result.getResponse().getContentAsString();
+					System.out.println(response);
+					Result res = mapper.readValue(response, Result.class);
+					assertTrue(res.getState() == State.ERROR);
+					assertTrue(!StatusApiApplication.globalServerStat.equals(stat));
+					System.out.println("postUpdateStatsControllerValidation -- OK");
+				}
+		);
+	}
+
+	@Test
+	void postUpdateStatsControllerValidationOverflow() throws Exception {
+		ServerStat stat = OVERFLOW_OBJ_SERVER_STAT;
+		PostUpdateRequest request = new PostUpdateRequest(signedChallenge, stat);
+		String json = mapper.writeValueAsString(request);
+		System.out.println(json);
+		mvc.perform(
+				post("/update")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(json)
+		).andExpect(
+				result -> {
+					String response = result.getResponse().getContentAsString();
+					System.out.println(response);
+					Result res = mapper.readValue(response, Result.class);
+					assertTrue(res.getState() == State.ERROR);
+					assertTrue(!StatusApiApplication.globalServerStat.equals(stat));
+					System.out.println("postUpdateStatsControllerValidationOverflow -- OK");
 				}
 		);
 	}
